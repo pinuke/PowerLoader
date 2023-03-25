@@ -32,6 +32,19 @@ If ( $Reinstall ) {
     }
 }
 
+If ( $Config.Manifests ) {
+
+    foreach( $Manifest in $Config.Manifests.GetEnumerator() ){
+
+        $Path = Resolve-Path (If ( [System.IO.Path]::IsPathRooted( $Manifest.Value ) ){
+            $Manifest.Value
+        } else {
+            Join-Path $ProjectDir $Manifest.Value
+        })
+        $Config.Dependencies[ $Manifest.Name ] = Import-Json $Path
+    }
+}
+
 If ( $Config.Dependencies ) {
     If ( $Config.Dependencies.Local ) {
         & "$Root/src/pwsh/dll/local.ps1" \
