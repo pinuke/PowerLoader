@@ -1,0 +1,11 @@
+{
+    "Destinations" : {
+        "PSGallery" : "pwshlibs/psgallery",
+        "NuGet" : "pwshlibs/nuget"
+    },
+    "Manifests" : {
+        "Local" : "pwshdeps/local.json",
+        "PSGallery" : "pwshdeps/psgallery.json",
+        "NuGet" : "pwshdeps/nuget.json"
+    }
+}
