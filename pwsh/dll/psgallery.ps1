@@ -14,7 +14,7 @@ foreach( $Dependency in $Dependencies.GetEnumerator() ){
 
             Write-Host "Downloading $( $Dependency.Name ), because it is missing..." -BackgroundColor DarkRed -ForegroundColor White
             $ProgressPreference = 'SilentlyContinue'
-            Save-Module -Name $Dependency.Name -Path $SaveTo -Repository "PSGallery" -Force
+            Save-Module -Name $Dependency.Name -Path $SaveTo -Repository "PSGallery" -Force -ErrorAction Stop
             $ProgressPreference = 'Continue'
             Write-Host "$( $Dependency.Name ) downloaded." -BackgroundColor Green -ForegroundColor Black
 

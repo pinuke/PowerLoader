@@ -45,7 +45,7 @@ foreach( $Dependency in $Dependencies.GetEnumerator() ){
 
                     $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
                     $ProgressPreference = 'SilentlyContinue'
-                    Invoke-WebRequest $URL -OutFile $tmp | Out-Null
+                    Invoke-WebRequest $URL -OutFile $tmp -ErrorAction Stop | Out-Null
                     New-Item -ItemType Directory -Force -Path "$SaveTo/$( $Dependency.Name )"
                     $tmp | Expand-Archive -DestinationPath "$SaveTo/$( $Dependency.Name )"
                     $tmp | Remove-Item | Out-Null
