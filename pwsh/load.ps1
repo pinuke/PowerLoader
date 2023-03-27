@@ -4,12 +4,12 @@ param(
     [string] $ProjectDir
 )
 
-$Root = If ( $Root ) { $Root } else {
-    If ( $PSScriptRoot ) { Resolve-Path "$PSScriptRoot/../.." } else { Resolve-Path "./../.." }
+$Root = If ( $TestRoot ) { $TestRoot } else {
+    If ( $PSScriptRoot ) { Resolve-Path "$PSScriptRoot/.." } else { Resolve-Path "./.." }
 }
 
 $ProjectDir = If ( $ProjectDir ) { $ProjectDir } else {
-    If ( $PSScriptRoot ) { Resolve-Path "$Root/.." } else { Resolve-Path "$Root/.." }
+    Resolve-Path "$Root/.."
 }
 
 . "$Root/pwsh/helpers/ensure-glob.ps1"
@@ -19,9 +19,15 @@ $ProjectDir = If ( $ProjectDir ) { $ProjectDir } else {
 . "$Root/pwsh/misc/json.ps1"
 
 $error.Clear() | Out-Null
-$ConfigFile = Resolve-Path "$ProjectDir/powershell.json" -ErrorAction SilentlyContinue
+$ConfigFile = Resolve-Path $ConfigFile -ErrorAction SilentlyContinue
 If( $error ){
-    $ConfigFile = Resolve-Path "$Root/json/default.json"
+
+    $error.Clear() | Out-Null
+    $ConfigFile = Resolve-Path "$ProjectDir/powershell.json" -ErrorAction SilentlyContinue
+    If( $error ){
+        $ConfigFile = Resolve-Path "$Root/json/default.json"
+    }
+
 }
 
 $Config = Import-Json $ConfigFile
@@ -34,30 +40,36 @@ If ( $Reinstall ) {
 
 If ( $Config.Manifests ) {
 
+    If ( !$Config.Dependencies ){
+        $Config.Dependencies = @{}
+    }
+
     foreach( $Manifest in $Config.Manifests.GetEnumerator() ){
 
-        $Path = Resolve-Path (If ( [System.IO.Path]::IsPathRooted( $Manifest.Value ) ){
+        $RootedPath = If ( [System.IO.Path]::IsPathRooted( $Manifest.Value ) ){
             $Manifest.Value
         } else {
             Join-Path $ProjectDir $Manifest.Value
-        })
+        }
+
+        $Path = Resolve-Path ( $RootedPath )
         $Config.Dependencies[ $Manifest.Name ] = Import-Json $Path
     }
 }
 
 If ( $Config.Dependencies ) {
     If ( $Config.Dependencies.Local ) {
-        & "$Root/pwsh/dll/local.ps1" \
+        & "$Root/pwsh/dll/local.ps1" `
             -Dependencies $Config.Dependencies.Local
     } 
     If ( $Config.Dependencies.PSGallery ) {
-        & "$Root/pwsh/dll/psgallery.ps1" \
-            -Dependencies $Config.Dependencies.PSGallery \
+        & "$Root/pwsh/dll/psgallery.ps1" `
+            -Dependencies $Config.Dependencies.PSGallery `
             -SaveTo "$ProjectDir/$( $Config.Destinations.PSGallery )"
     }
     If ( $Config.Dependencies.NuGet ) {
-        & "$Root/pwsh/dll/nuget.ps1" \
-            -Dependencies $Config.Dependencies.NuGet \
+        & "$Root/pwsh/dll/nuget.ps1" `
+            -Dependencies $Config.Dependencies.NuGet `
             -SaveTo "$ProjectDir/$( $Config.Destinations.NuGet )"
     } 
 }

@@ -1,11 +1,17 @@
 param(
     [Parameter(Mandatory=$true)]
-    [hashtable] $Dependencies,
+    [System.Management.Automation.OrderedHashtable] $Dependencies,
     [Parameter(Mandatory=$true)]
     [string] $SaveTo
 )
 
 foreach( $Dependency in $Dependencies.GetEnumerator() ){
+
+    $CaseInsensitiveTable = [hashtable]::new( [System.StringComparer]::InvariantCultureIgnoreCase ) # Case Insensitive Table for Compatibility
+    foreach ( $pair in $Dependency.Value.GetEnumerator() ) { $CaseInsensitiveTable[ $pair.Key ] = $pair.Value }
+
+    $Dependency.Value = $CaseInsensitiveTable
+
     Write-Host
     Write-Host "Importing PowerShell Gallery Module:" -BackgroundColor DarkBlue -ForegroundColor White
 
@@ -22,14 +28,15 @@ foreach( $Dependency in $Dependencies.GetEnumerator() ){
         -SuccessScript {
             param( $Paths )
 
+            If( !$Paths.Length -or ( $Paths -eq $null ) ){
+                Write-Host " - no files loaded for this dependency"
+                return;
+            }
+
             Write-Host "Importing $( $Dependency.Name )..." -BackgroundColor DarkYellow -ForegroundColor White
             $Paths | ForEach-Object {
                 Write-Host " - $( $_.Path )"
                 Import-Module $_.Path
-            }
-
-            If( !$Targets.Length ){
-                Write-Host " - no files loaded for this dependency"
             }
         }
 }

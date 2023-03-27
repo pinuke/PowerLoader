@@ -1,23 +1,23 @@
 function Ensure-Glob {
     param(
         [Parameter(Mandatory=$true)]
-        [hashtable] $Globs,
+        [array] $Globs,
         [Parameter(Mandatory=$true)]
         [scriptblock] $EnsureScript,
         [Parameter(Mandatory=$true)]
         [scriptblock] $SuccessScript
     )
 
-    foreach( $Glob in $Globs.GetEnumerator() ){
+    $Globs | ForEach-Object {
 
         $error.clear() | Out-Null
-        $Paths = Resolve-Path $Glob.Value -ErrorAction SilentlyContinue
+        $Paths = Resolve-Path $_ -ErrorAction SilentlyContinue
         If ( $error ) {
             Invoke-Command $EnsureScript
-            $Paths = Resolve-Path $Glob.Value
-            Invoke-Command $SuccessScript -ArgumentList @( $Paths )
+            $Paths = Resolve-Path $_
+            Invoke-Command $SuccessScript -ArgumentList (, $Paths )
         } else {
-            Invoke-Command $SuccessScript -ArgumentList @( $Paths )
+            Invoke-Command $SuccessScript -ArgumentList (, $Paths )
         }
     }
 }

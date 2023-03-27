@@ -1,12 +1,17 @@
 param(
     [Parameter(Mandatory=$true)]
-    [hashtable] $Dependencies,
+    [System.Management.Automation.OrderedHashtable] $Dependencies,
     [Parameter(Mandatory=$true)]
     [string] $SaveTo
 )
 
 foreach( $Dependency in $Dependencies.GetEnumerator() ){
-    
+
+    $CaseInsensitiveTable = [hashtable]::new( [System.StringComparer]::InvariantCultureIgnoreCase ) # Case Insensitive Table for Compatibility
+    foreach ( $pair in $Dependency.Value.GetEnumerator() ) { $CaseInsensitiveTable[ $pair.Key ] = $pair.Value }
+
+    $Dependency.Value = $CaseInsensitiveTable
+
     $URL = If ( $Dependency.Value.Source ) {
         $Dependency.Value.Source
     } else {
@@ -46,7 +51,7 @@ foreach( $Dependency in $Dependencies.GetEnumerator() ){
                     $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
                     $ProgressPreference = 'SilentlyContinue'
                     Invoke-WebRequest $URL -OutFile $tmp -ErrorAction Stop | Out-Null
-                    New-Item -ItemType Directory -Force -Path "$SaveTo/$( $Dependency.Name )"
+                    New-Item -ItemType Directory -Force -Path "$SaveTo/$( $Dependency.Name )" | Out-Null
                     $tmp | Expand-Archive -DestinationPath "$SaveTo/$( $Dependency.Name )"
                     $tmp | Remove-Item | Out-Null
                     $ProgressPreference = 'Continue'
@@ -58,17 +63,19 @@ foreach( $Dependency in $Dependencies.GetEnumerator() ){
                     param( $Paths )
 
                     Write-Host "Importing $( $Dependency.Name )..." -BackgroundColor DarkYellow -ForegroundColor White
+
+                    If( !$Paths.Length -or ( $Paths -eq $null ) ){
+                        Write-Host " - no files loaded for this dependency"
+                        return;
+                    }
+
                     $Paths | ForEach-Object {
                         Write-Host " - $( $_.Path )"
                         If ( $Job.Value.Type -eq "Managed" ){
-                            Import-Module $_.Path
+                            Import-Module $_.Path | Out-Null
                         } else {
-                            Import-NativeLibrary $_.Path
+                            Import-NativeLibrary $_.Path | Out-Null
                         }
-                    }
-
-                    If( !$Targets.Length ){
-                        Write-Host " - no files loaded for this dependency"
                     }
                 }
         }
