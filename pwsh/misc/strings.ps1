@@ -3,6 +3,6 @@ function global:Import-Contents {
         [Parameter(Mandatory=$true)]
         [string] $Path
     )
-    [string] $Contents = Get-Contet -Path (Resolve-Path $Path)
+    [string] $Contents = Get-Content -Path (Resolve-Path $Path) -Raw
     $Contents
 }
