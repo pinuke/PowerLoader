@@ -16,7 +16,6 @@ $ProjectDir = If ( $ProjectDir ) { $ProjectDir } else {
 
 . "$Root/pwsh/misc/native-library.ps1"
 . "$Root/pwsh/misc/strings.ps1"
-. "$Root/pwsh/misc/json.ps1"
 
 $error.Clear() | Out-Null
 $ConfigFile = Resolve-Path $ConfigFile -ErrorAction SilentlyContinue
@@ -30,7 +29,7 @@ If( $error ){
 
 }
 
-$Config = Import-Json $ConfigFile
+$Config = Import-Content $ConfigFile -As JSON
 
 If ( $Reinstall ) {
     foreach( $dir in $Config.Destinations.GetEnumerator() ){
@@ -53,7 +52,7 @@ If ( $Config.Manifests ) {
         }
 
         $Path = Resolve-Path ( $RootedPath )
-        $Config.Dependencies[ $Manifest.Name ] = Import-Json $Path
+        $Config.Dependencies[ $Manifest.Name ] = Import-Content $Path -As JSON
     }
 }
 
