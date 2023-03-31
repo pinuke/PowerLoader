@@ -29,7 +29,7 @@ If( $error ){
 
 }
 
-$Config = Import-Contents $ConfigFile -As JSON
+$Config = Import-Contents -Path $ConfigFile -As JSON
 
 If ( $Reinstall ) {
     foreach( $dir in $Config.Destinations.GetEnumerator() ){
@@ -52,7 +52,7 @@ If ( $Config.Manifests ) {
         }
 
         $Path = Resolve-Path ( $RootedPath )
-        $Config.Dependencies[ $Manifest.Name ] = Import-Content $Path -As JSON
+        $Config.Dependencies[ $Manifest.Name ] = Import-Contents -Path $Path -As JSON
     }
 }
 
