@@ -1,8 +1,20 @@
 function global:Import-Contents {
     param(
         [Parameter(Mandatory=$true)]
-        [string] $Path
+        [string] $Path,
+        [string] $As
     )
-    [string] $Contents = Get-Content -Path (Resolve-Path $Path) -Raw
-    $Contents
+    [string] $Initial = Get-Content -Path (Resolve-Path $Path) -Raw
+
+    switch ( $As ) {
+        "scriptblock" {
+            [scriptblock]::Create( $Initial )
+        }
+        "json" {
+            $Initial | ConvertFrom-Json -AsHashtable            
+        }
+        Default {
+            $Initial
+        }
+    }
 }
