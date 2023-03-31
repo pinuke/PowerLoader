@@ -29,7 +29,7 @@ If( $error ){
 
 }
 
-$Config = Import-Content $ConfigFile -As JSON
+$Config = Import-Contents $ConfigFile -As JSON
 
 If ( $Reinstall ) {
     foreach( $dir in $Config.Destinations.GetEnumerator() ){
